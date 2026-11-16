@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>清的法语小课堂 — Le français avec Qing · V9</title>
+<title>清的法语小课堂 — Le français avec Qing · V10</title>
 <style>
 :root{
   --creme:#FBF7EF; --creme2:#F3ECDD; --nuit:#1F2A44; --nuit2:#2A3855;
@@ -130,8 +130,8 @@ h2[id]{scroll-margin-top:90px}
 <body>
 <header>
   <div class="hrow">
-    <button class="logo" onclick="go('home')">清的法语小课堂<small>Le français avec Qing · V9</small></button>
-    <span class="badge">无需听力</span>
+    <button class="logo" onclick="go('home')">清的法语小课堂<small>Le français avec Qing · V10</small></button>
+    
   </div>
 </header>
 <main id="app" class="wrap"></main>
@@ -149,7 +149,8 @@ function normalizeProgress(d){
   return {done:Array.isArray(d.done)?d.done.filter(function(x){return typeof x==="string"&&/^([1-9]|1[0-2])-[1-5]$/.test(x);}):[],
     fav:Array.isArray(d.fav)?d.fav:[],err:Array.isArray(d.err)?d.err:[],
     mynotes:isRecord(d.mynotes)?d.mynotes:{},current:d.current||null,last:d.last||null,
-    memory:isRecord(d.memory)?d.memory:{},practice:isRecord(d.practice)?d.practice:{}};
+    memory:isRecord(d.memory)?d.memory:{},practice:isRecord(d.practice)?d.practice:{},
+    recall:isRecord(d.recall)?d.recall:{},journal:isRecord(d.journal)?d.journal:{}};
 }
 function load(){
   var d=null;
@@ -750,7 +751,7 @@ function verb(t,o,n){t.addEventListener("click",function(){o();if(n)t.removeEven
 var app=document.getElementById("app");
 var cur="home", curLesson=null;
 /* ---------- 导航 ---------- */
-var NAV=[["home","🏠","主页"],["plan","🗓","课程"],["dict","📖","词典"],["rev","🔄","复习"],["memorylab","🧠","记忆"],["share","💛","和你一起"],["progress","📈","进度"],["help","❓","说明"]];
+var NAV=[["home","🏠","主页"],["plan","🗓","课程"],["dict","📖","词典"],["rev","🔄","复习"],["memorylab","🧠","记忆"],["recall","✍️","挑战"],["share","💛","和你一起"],["progress","📈","进度"],["help","❓","说明"]];
 function go(view,arg){
   if(view==="lesson"&&arg){S.current={w:arg.w,d:arg.d};save();}
   cur=view; curLesson=(view==="lesson")?arg:null;
@@ -761,6 +762,7 @@ function go(view,arg){
   else if(view==="dict")renderDict();
   else if(view==="rev")renderRev();
   else if(view==="memorylab")renderMemoryLab();
+  else if(view==="recall")renderRecall();
   else if(view==="share")renderShare();
   else if(view==="progress")renderProgressShare();
   else if(view==="help")renderHelp();
@@ -780,7 +782,7 @@ function renderHome(){
   var pct=Math.round(100*ALL.filter(function(l){return isDone(l.w+"-"+l.d);}).length/ALL.length);
   var nl=nextLesson();
   var mot=MOTS[new Date().getDate()%MOTS.length];
-  var h='<h1>清的法语小课堂</h1><p class="muted">轻松学一点法语 · 无需听力 · 适合 iPhone 和电脑 · <span class="badge">免费 · 无需注册</span></p>';
+  var h='<h1>清的法语小课堂</h1><p class="muted">轻松学一点法语 · 无需听力 · 适合 iPhone 和电脑</p>';
   h+=storageNotice();
   h+='<div class="card"><h3>我的进度</h3><p class="muted">📱 仅显示这台设备的学习记录，不会自动同步给别人。</p><div class="pbar"><div class="pfill" style="width:'+pct+'%"></div></div>'+
      '<p class="muted">已完成 '+ALL.filter(function(l){return isDone(l.w+'-'+l.d);}).length+' / '+ALL.length+' 节小课（'+pct+'%）</p>'+
@@ -790,7 +792,8 @@ function renderHome(){
   h+='<div class="motmsg">💬 '+mot+'</div>';
   var due=dueItems().length;
   h+='<div class="card"><h3>🧠 今天的轻松复习</h3><p>已有 <b>'+due+'</b> 个词可以复习。昨天学过的词会回来，记住后再隔几天复习。</p><button class="btn ghost" onclick="go(\'rev\')">开始复习 →</button><p class="muted">不需要每天复习，也没有连续打卡压力。</p></div>';
-  h+='<div class="card v9callout"><h3>🧠 新增：记忆小训练</h3><p>不靠死记硬背：练数字、钟点、星期，以及 mon / ma / un / une。先试着回忆，再看解释。不会扣除已经完成的课程。</p><button class="btn sec" onclick="go(\'memorylab\')">开始记忆训练 →</button></div>';
+  h+='<div class="card v9callout"><h3>🧠 视觉记忆训练</h3><p>不靠死记硬背：练数字、钟点、星期，以及 mon / ma / un / une。先试着回忆，再看解释。不会扣除已经完成的课程。</p><button class="btn sec" onclick="go(\'memorylab\')">开始记忆训练 →</button></div>';
+  h+='<div class="card v9callout"><h3>✍️ V10 · 无提示记忆挑战</h3><p>先自己想、自己写，再看参考答案。5 题轻松复习或 10 题深入挑战，也可以写一句真实生活里的法语。不会影响以前完成的课程。</p><button class="btn sec" onclick="go(\'recall\')">试试记忆挑战 →</button></div>';
   h+='<h2>12 周课程（自由节奏，不必按时完成）</h2>';
   WEEKS.forEach(function(wk){
     var ls=ALL.filter(function(l){return l.w===wk.n;});
@@ -1119,7 +1122,8 @@ function progressStats(){
   });
   var notes=Object.keys(S.mynotes||{}).filter(function(id){return (S.mynotes[id]||"").trim().length>0;}).length;
   var reviewKnown=Object.keys(S.memory||{}).filter(function(k){return (S.memory[k].ok||0)>0;}).length;
-  return {done:studied.length,words:Object.keys(words).length,notes:notes,reviewKnown:reviewKnown,weeks:weeks,
+  var recallSeen=Object.keys(S.recall||{}).filter(function(k){return (S.recall[k].attempts||0)>0;}).length;
+  return {done:studied.length,words:Object.keys(words).length,notes:notes,reviewKnown:reviewKnown,recallSeen:recallSeen,weeks:weeks,
     last:studied.length?studied[studied.length-1]:null};
 }
 function progressText(){
@@ -1128,6 +1132,7 @@ function progressText(){
     "✅ 已完成课程："+p.done+" / "+ALL.length,
     "📖 已接触词汇："+p.words+" 个（来自已完成课程）",
     "🧠 自评记得过的词："+p.reviewKnown+" 个（不代表已掌握）",
+    "✍️ 记忆挑战练过："+p.recallSeen+" 项",
     "✍️ 已写学习句子："+p.notes+" 条"];
   var wkeys=Object.keys(p.weeks).map(Number).sort(function(a,b){return a-b;});
   if(wkeys.length){lines.push("", "🗓 每周完成情况：");wkeys.forEach(function(w){lines.push("第 "+w+" 周："+p.weeks[w]+" / 5 节");});}
@@ -1141,7 +1146,8 @@ function renderProgressShare(){
   h+='<div class="card"><h3>已经学了这么多！</h3><div class="pbar"><div class="pfill" style="width:'+pct+'%"></div></div>'+
     '<p><b>'+p.done+' / '+ALL.length+'</b> 节小课（'+pct+'%）</p>'+
     '<p>📖 已接触词汇：<b>'+p.words+'</b> 个</p>'+
-    '<p>🧠 复习时自评记得：<b>'+p.reviewKnown+'</b> 个词</p>'+ 
+    '<p>🧠 复习时自评记得：<b>'+p.reviewKnown+'</b> 个词</p>'+
+    '<p>✍️ 记忆挑战已尝试：<b>'+p.recallSeen+'</b> 项</p>'+  
     '<p>✍️ 已写学习句子：<b>'+p.notes+'</b> 条</p>'+
     '<p class="muted">词汇是已完成课程中出现过的不同法语词语数量，不代表已经全部记住；这里不统计练习成绩。</p></div>';
   h+='<div class="card"><h3>每周的小脚印</h3>';
@@ -1180,7 +1186,7 @@ function fallbackCopyProgress(t,btn){
 
 /* Sauvegarde facultative: données locales uniquement, aucun envoi réseau. */
 function exportQingBackup(){
-  var payload={format:"qing-francais-backup",version:1,exportedAt:new Date().toISOString(),data:{done:S.done,fav:S.fav,err:S.err,mynotes:S.mynotes,current:S.current,memory:S.memory}};
+  var payload={format:"qing-francais-backup",version:1,exportedAt:new Date().toISOString(),data:{done:S.done,fav:S.fav,err:S.err,mynotes:S.mynotes,current:S.current,memory:S.memory,practice:S.practice,recall:S.recall,journal:S.journal}};
   var blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json;charset=utf-8"});
   var url=URL.createObjectURL(blob),a=document.createElement("a");
   a.href=url;a.download="qing-francais-sauvegarde.json";document.body.appendChild(a);a.click();a.remove();
@@ -1213,6 +1219,19 @@ function importQingBackup(input){
         if(!old){combined.memory[k]=incoming;return;}
         if((incoming.stage||0)>(old.stage||0)||((incoming.stage||0)===(old.stage||0)&&(incoming.ok||0)>(old.ok||0)))combined.memory[k]=incoming;
       });
+      // Restaurer aussi les exercices V9/V10 sans toucher aux cours déjà terminés.
+      ['practice','recall'].forEach(function(field){
+        if(!isRecord(d[field]))return;
+        var entries=Object.keys(d[field]).slice(0,400);
+        entries.forEach(function(k){
+          if(k.length>120||!isRecord(d[field][k]))return;
+          var incoming=d[field][k],old=combined[field][k];
+          if(!old || ((Number(incoming.attempts)||0)>(Number(old.attempts)||0)))combined[field][k]=incoming;
+        });
+      });
+      if(isRecord(d.journal))Object.keys(d.journal).slice(0,150).forEach(function(k){
+        if(k.length<100&&typeof d.journal[k]==='string'&&d.journal[k].length<3000&&!combined.journal[k])combined.journal[k]=d.journal[k];
+      });
       if(!combined.current)combined.current=d.current||null;
       S=combined;save();go("progress");alert("学习记录已安全合并！以前完成的课程都保留了。");
     }catch(e){alert("这个文件不是有效的学习备份，请检查文件。 ");}
@@ -1233,7 +1252,7 @@ function renderHelp(){
   h+='<div class="card"><h3>🧠 轻松复习与图像</h3><p>学过的词会在约1、3、7、14天后重新出现。每次复习可以选择“记得”或“再看看”。图片符号仅辅助认识具体物品，并非真实手语；真正的 LSF 请查看 Elix。</p><p>有些课程有简短的书面对话。你可以模仿一句，也可以不写，没有强制成绩。</p></div>';
   h+='<div class="card"><h3>🤟 Elix 手语词典</h3><p>部分词汇卡片和词典词条现在有「在 Elix 查询手语」按钮，点开可以在 Elix 查询相关手语；部分按钮搜索的是动词原形或相关词，并不是整句话的翻译，视频也不保证存在。你可以自由决定要不要看，完全不影响课程。Elix 是第三方独立网站；本网站不保存、转载或复制它的视频。不同词义可能对应不同手语，请留意选择正确的意思。</p><p><a href="https://dico.elix-lsf.fr/" target="_blank" rel="noopener noreferrer">打开 Elix 官方词典 ↗</a></p></div>';
   h+='<div class="card"><h3>关于拼音和 LSF</h3><p>卡片上的拼音标注的是<b>汉字（中文）的读音</b>，跟法语发音无关——我们完全不学法语发音。另外：LSF（法国手语）是一门独立的手语语言，和书面法语是两回事，课堂上不会混淆两者；需要手语交流时，由身边的人直接用 LSF 就好。</p></div>';
-  h+='<div class="card"><h3>🧠 V9 记忆训练</h3><p>从主页或复习页打开：数字、电子钟、星期日历与家庭冠词。题目以中文提示，自己填法语答案。错误不会清除已完成的课程；练习记录留在这台设备上。复习不是考试，想休息就停。</p></div>';
+  h+='<div class="card"><h3>🧠 视觉记忆训练</h3><p>从主页或复习页打开：数字、电子钟、星期日历与家庭冠词。题目以中文提示，自己填法语答案。错误不会清除已完成的课程；练习记录留在这台设备上。复习不是考试，想休息就停。</p></div>';
   h+='<div class="card"><h3>进度与隐私</h3><p>进度、收藏、错题都保存在你当前设备的浏览器里（localStorage），<b>不需要注册</b>。iPhone 和电脑的进度<b>不会自动同步</b>。你可以在「📈 进度」里下载备份，换设备时安全合并恢复；网站更新不会自动清空学习记录；请不要把备份文件随意转发。你可以在「📈 进度」中自愿通过 WhatsApp 分享学习总结，分享前由你选择收件人并确认。网站本身不自动发送任何个人学习记录。</p></div>';
   h+='<div class="card"><h3>小提示</h3><p>工作中只想学一小会儿？每课随时可以停，回来点主页的「继续学习」就能接上。没有提醒、没有通知，完全由你决定什么时候学。</p></div>';
   app.innerHTML=h;
@@ -1360,6 +1379,84 @@ function renderMemoryLab(){var names={numbers:'🔢 数字',clocks:'🕒 时间'
  '<div><button class="btn" id="v9check" onclick="v9Check()">检查答案</button> <button class="btn sec" id="v9next" onclick="v9Advance()" hidden>下一题 →</button> <button class="btn ghost" onclick="v9Advance()">跳过</button></div>'+
  '<div id="v9feedback" class="v9result" role="status" aria-live="polite"></div></div>'+
  '<div class="card"><h3>🌷 记忆小建议</h3><p>数字：看数字直接想法语，不必一次背完 1–10。</p><p>时间：先看钟点，再想“Il est ... heure(s).”。1 点要写 une heure。</p><p>星期：对着七天日历每天练两三个词；不用连续学习。</p><p>冠词：ma famille / mon père / une sœur，连着完整短句一起记。</p><p class="muted">答题只存在当前设备，与你之前完成的 10 节课程独立。不会自动发送给任何人。</p></div>';
+ app.innerHTML=h;
+}
+
+
+/* =============== V10 : rappel actif & expression personnelle ===============
+   Données séparées (S.recall, S.journal). Ne changent JAMAIS S.done.
+   Propositions pédagogiques : pas une note ni une évaluation linguistique automatique. */
+var V10_CARDS=[
+ {id:'intro-1',cat:'句子',cn:'我叫 Qing。',answer:'Je m’appelle Qing.',a:["Je m'appelle Qing"],hint:'je + m’appelle + 名字',why:'m’ 指向“我”，appelle 是第一人称变位。'},
+ {id:'intro-2',cat:'句子',cn:'你叫什么名字？',answer:'Comment tu t’appelles ?',a:["Comment tu t'appelles"],hint:'Comment tu t’... ?',why:'tu 搭配 t’appelles（词尾 -s）。'},
+ {id:'intro-3',cat:'句子',cn:'她是中国人。',answer:'Elle est chinoise.',a:['Elle est chinoise'],hint:'elle est + 女性形式',why:'chinoise 是女性形式。'},
+ {id:'fam-1',cat:'冠词',cn:'我有一个姐妹。',answer:'J’ai une sœur.',a:["J'ai une sœur","J’ai une soeur","J'ai une soeur"],hint:'J’ai ___ sœur.',why:'un / une 表示“一个”，sœur 是阴性。'},
+ {id:'fam-2',cat:'冠词',cn:'这是我的家人。',answer:'Voici ma famille.',a:['Voici ma famille'],hint:'Voici ___ famille.',why:'famille 是阴性单数，所以用 ma。'},
+ {id:'fam-3',cat:'冠词',cn:'这是我的爸爸。',answer:'Voici mon père.',a:['Voici mon père'],hint:'Voici ___ père.',why:'père 是阳性名词，所以用 mon。'},
+ {id:'fam-4',cat:'冠词',cn:'我有一个兄弟。',answer:'J’ai un frère.',a:["J'ai un frère"],hint:'J’ai ___ frère.',why:'frère 是阳性名词，所以用 un。'},
+ {id:'intro-4',cat:'句子',cn:'她叫 Marie。',answer:'Elle s’appelle Marie.',a:["Elle s'appelle Marie"],hint:'Elle s’... Marie.',why:'elle 搭配 s’appelle。'},
+ {id:'numbers-1',cat:'数字',cn:'写出数字 7（法语）。',answer:'sept',a:['sept'],hint:'s...t',why:'7 = sept。'},
+ {id:'numbers-2',cat:'数字',cn:'写出数字 8（法语）。',answer:'huit',a:['huit'],hint:'h...t',why:'8 = huit。'},
+ {id:'numbers-3',cat:'数字',cn:'写出数字 10（法语）。',answer:'dix',a:['dix'],hint:'d...x',why:'10 = dix。'},
+ {id:'time-1',cat:'时间',cn:'🕢 07:30：Il est sept heures et ____.',answer:'demie',a:['demie'],hint:'d...e',why:'et demie 表示半点。'},
+ {id:'time-2',cat:'时间',cn:'🕐 01:00：Il est ____ heure.',answer:'une',a:['une'],hint:'u...e',why:'une heure 是阴性单数。'},
+ {id:'days-1',cat:'星期',cn:'星期一的法语怎么写？',answer:'lundi',a:['lundi'],hint:'l...i',why:'lundi = 星期一。'},
+ {id:'days-2',cat:'星期',cn:'星期三的法语怎么写？',answer:'mercredi',a:['mercredi'],hint:'m...i',why:'mercredi = 星期三。'}
+];
+var V10_SESSION=[],V10_POS=0,V10_MODE='quick',V10_WRONG=0,V10_REVEALED=false;
+function v10State(){if(!isRecord(S.recall))S.recall={};return S.recall;}
+function v10Norm(value){return String(value||'').normalize('NFC').toLowerCase().replace(/œ/g,'oe').replace(/[’‘]/g,"'").replace(/[.!?,;:]+/g,'').replace(/\s+/g,' ').trim();}
+function v10Record(id,success){var p=v10State(),old=p[id]||{stage:0,attempts:0,correct:0};old.attempts++;old.last=dayStamp();
+ if(success){old.correct++;old.stage=Math.min(4,(old.stage||0)+1);old.due=dayStamp()+[1,3,7,14][old.stage-1];}
+ else{old.stage=0;old.due=dayStamp()+1;}
+ p[id]=old;save();}
+function v10Due(){var t=dayStamp(),state=v10State();return V10_CARDS.filter(function(q){return state[q.id]&&state[q.id].due<=t;}).length;}
+function v10Start(mode){
+ V10_MODE=mode==='deep'?'deep':'quick';var count=V10_MODE==='deep'?10:5,today=dayStamp(),state=v10State();
+ var due=V10_CARDS.filter(function(x){return state[x.id]&&state[x.id].due<=today;});
+ var fresh=V10_CARDS.filter(function(x){return !state[x.id];});
+ var later=V10_CARDS.filter(function(x){return state[x.id]&&state[x.id].due>today;});
+ // Trier pour prioriser les difficultés sans rendre les questions toujours identiques.
+ due.sort(function(a,b){return (state[a.id].due||0)-(state[b.id].due||0);});
+ V10_SESSION=due.concat(shuffle(fresh)).concat(shuffle(later)).slice(0,count);
+ V10_POS=0;V10_WRONG=0;V10_REVEALED=false;v10Question();
+}
+function v10Question(){
+ if(V10_POS>=V10_SESSION.length){
+  app.innerHTML='<h1>🌷 完成啦！</h1><div class="card"><p>今天的记忆挑战结束了。遗忘很正常，下次会自动重新出现需要复习的内容。</p><p>已完成的课程不变，也不会扣分。</p><button class="btn" onclick="go(\'recall\')">返回记忆挑战</button></div>';return;
+ }
+ var q=V10_SESSION[V10_POS];V10_WRONG=0;V10_REVEALED=false;
+ app.innerHTML='<h1>✍️ 无提示记忆挑战</h1><p class="muted">第 '+(V10_POS+1)+' / '+V10_SESSION.length+' 题 · '+esc(q.cat)+'</p>'+
+ '<div class="card"><h3>'+esc(q.cn)+'</h3><label for="v10answer">自己写出法语（先不看答案）</label><input id="v10answer" class="txt" autocomplete="off" autocapitalize="none" spellcheck="false" onkeydown="if(event.key===\'Enter\'){event.preventDefault();v10Check();}" placeholder="请写法语答案">'+
+ '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px"><button class="btn" id="v10check" onclick="v10Check()">检查</button><button class="btn ghost" onclick="v10Reveal()">查看参考答案</button><button class="btn ghost" onclick="v10Skip()">跳过</button></div><div id="v10feedback" role="status" aria-live="polite"></div><div id="v10controls" hidden><button class="btn sec" onclick="v10Next()">下一题 →</button></div></div>'+
+ '<p class="muted">没有分数；写错可以重新想。答案可以有不同的正确表达，自动检查只识别这里列出的形式。</p>';
+}
+function v10Finish(ok,msg){var q=V10_SESSION[V10_POS];v10Record(q.id,ok);document.getElementById('v10check').disabled=true;
+ document.getElementById('v10controls').hidden=false;var f=document.getElementById('v10feedback');f.className='fbk '+(ok?'ok':'bad');f.textContent=msg+' 参考答案：'+q.answer+' · '+q.why;}
+function v10Check(){var input=document.getElementById('v10answer');if(!input)return;var text=input.value.trim();var q=V10_SESSION[V10_POS],f=document.getElementById('v10feedback');
+ if(!text){f.className='fbk bad';f.textContent='先试着写一点。';return;}
+ var ok=q.a.some(function(a){return v10Norm(a)===v10Norm(text);});
+ if(ok){v10Finish(true,'✓ 答对了！');return;}
+ V10_WRONG++;if(V10_WRONG===1){f.className='fbk bad';f.textContent='再试一次。提示：'+q.hint;}
+ else{v10Finish(false,'没关系，下次再练习。');}
+}
+function v10Reveal(){if(V10_REVEALED)return;V10_REVEALED=true;v10Finish(false,'看过答案也能学会。');}
+function v10Skip(){if(V10_POS<V10_SESSION.length){v10Record(V10_SESSION[V10_POS].id,false);v10Next();}}
+function v10Next(){V10_POS++;v10Question();}
+function v10JournalSave(){var el=document.getElementById('v10journal');if(!el)return;var val=el.value.trim().slice(0,1200);
+ if(!isRecord(S.journal))S.journal={};var id='journal-'+dayStamp();if(val)S.journal[id]=val;save();
+ var out=document.getElementById('v10journalsaved');if(out)out.textContent=val?'已保存在这台设备。你可以自己决定是否分享。':'请先写一句话。';}
+function v10JournalCopy(){var el=document.getElementById('v10journal');if(!el||!el.value.trim())return;
+ var t=el.value.trim();if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){alert('已复制，可以自行粘贴到 WhatsApp。');}).catch(function(){alert('复制失败，请手动选择文字复制。');});}else{el.focus();el.select();try{document.execCommand('copy');alert('已复制。');}catch(e){alert('请手动复制。');}}}
+function renderRecall(){var state=v10State(),n=Object.keys(state).filter(function(k){return state[k]&&state[k].attempts>0;}).length;
+ var today='journal-'+dayStamp(),old=isRecord(S.journal)?(S.journal[today]||''):'';
+ var h='<h1>🧠 记忆与表达 · V10</h1><p>课程是学习新内容；这里是检验几天以后还记得什么。不看提示先写，答错也没关系。</p>'+
+ '<div class="card"><h3>🧠 检验记忆</h3><p>已练过 '+n+' / '+V10_CARDS.length+' 个重点。现在可以复习的有 '+v10Due()+' 个。</p><p>这次先做 5 题，或者挑战 10 题。题目优先选择需要复习的内容。</p>'+
+ '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="v10Start(\'quick\')">🌷 5 题轻松回忆</button><button class="btn sec" onclick="v10Start(\'deep\')">✍️ 10 题深入挑战</button></div><p class="muted">今天没做也没关系。答错会在以后出现，不会影响已完成的课程。</p></div>'+
+ '<div class="card"><h3>💌 真实生活里的一句话</h3><p>写一句你今天真正想说的法语，例如今天的心情、和家人的生活，或者给心爱的人一句话。</p><p class="muted">不提供唯一标准答案，你可以自由发挥。这里不会自动评分。</p>'+
+ '<label for="v10journal">我今天想写……</label><textarea id="v10journal" class="txt" maxlength="1200" style="min-height:125px;width:100%" placeholder="例如：Aujourd’hui, je suis contente.">'+esc(old)+'</textarea>'+
+ '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn" onclick="v10JournalSave()">保存我的句子</button><button class="btn ghost" onclick="v10JournalCopy()">复制句子（可发 WhatsApp）</button></div><p id="v10journalsaved" class="muted" role="status"></p><p class="muted">句子只存放在这个浏览器中，分享由你自己决定。</p></div>'+
+ '<div class="card"><h3>🔒 保留原来的进度</h3><p>这个模块不会更改已经完成的 60 课进度。新练习记录也会包含在“学习备份”中。</p><button class="btn ghost" onclick="go(\'progress\')">查看或备份我的学习记录</button></div>';
  app.innerHTML=h;
 }
 
