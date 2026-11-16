@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>清的法语小课堂 — Le français avec Qing · Édition 2</title>
+<title>清的法语小课堂 — Le français avec Qing · V8</title>
 <style>
 :root{
   --creme:#FBF7EF; --creme2:#F3ECDD; --nuit:#1F2A44; --nuit2:#2A3855;
@@ -14,15 +14,15 @@
 html{font-size:18px;}
 body{margin:0;background:var(--creme);color:var(--txt);
   font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,-apple-system,sans-serif;
-  line-height:1.75; padding-bottom:90px;}
+  line-height:1.75; padding-bottom:calc(100px + env(safe-area-inset-bottom, 0px));}
 .wrap{max-width:760px;margin:0 auto;padding:0 16px;}
 header{background:var(--nuit);color:#fff;padding:14px 16px;position:sticky;top:0;z-index:20;}
 .hrow{max-width:760px;margin:0 auto;display:flex;align-items:center;gap:10px;justify-content:space-between;}
 .logo{font-size:1.05rem;font-weight:700;letter-spacing:.5px;cursor:pointer;background:none;border:none;color:#fff;padding:8px 0;}
 .logo small{display:block;font-size:.62rem;font-weight:400;opacity:.75;letter-spacing:0;}
 .badge{background:var(--corail);color:#fff;font-size:.7rem;padding:4px 10px;border-radius:999px;white-space:nowrap;}
-nav{background:var(--nuit2);position:fixed;bottom:0;left:0;right:0;z-index:30;display:flex;}
-nav button{flex:1;background:none;border:none;color:#CFD6E8;font-size:.72rem;padding:9px 4px 10px;min-height:56px;font-family:inherit;}
+nav{background:var(--nuit2);position:fixed;bottom:0;left:0;right:0;z-index:30;display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;padding-bottom:env(safe-area-inset-bottom,0px);}
+nav button{flex:1 0 60px;background:none;border:none;color:#CFD6E8;font-size:.72rem;padding:9px 4px 10px;min-height:56px;font-family:inherit;}
 nav button .ic{display:block;font-size:1.35rem;line-height:1.4;}
 nav button.on{color:#fff;background:var(--corail);}
 h1{color:var(--nuit);font-size:1.5rem;margin:1.2rem 0 .4rem;}
@@ -87,12 +87,36 @@ h2[id]{scroll-margin-top:90px}
 .elixlink:hover,.elixlink:focus-visible{background:#D8E8FA;}
 .elixnote{font-size:.8rem;color:var(--muted);margin-top:6px;line-height:1.5}
 .elixintro{background:#F1F6FC;border:1px solid #C7D9EA;border-radius:12px;padding:12px 14px;margin:12px 0}
+
+.v6visual{font-size:2.5rem;line-height:1.3;padding:4px 0 7px;user-select:none}
+.v6dialog{background:#f7f9fc;border-color:#d8e1ec}
+.v6bubble{background:#fff;border:1px solid #d8e1ec;padding:12px 14px;border-radius:13px;margin:10px 0;max-width:95%}
+.v6bubble.answer{margin-left:auto;background:#eaf2f0}
+.v6bubble strong{display:block;color:#1f2a44;font-size:1.08rem}
+.v6bubble small{display:block;color:#5e655f;margin-top:3px;font-size:.88rem}
+.v6review{padding:12px;margin-top:12px;border:1px solid var(--line);border-radius:13px}
+.v6review .btn{margin:6px 5px 5px 0}
+
+/* V8 : niveau progressif, sans dépendance externe */
+.advanced-wrap{border:2px solid #62738f;border-radius:15px;padding:14px;margin:18px 0;background:#f3f6fb}
+.advanced-wrap h3{margin-top:0}.advanced-details{margin-top:10px}
+.advanced-details summary{display:block;cursor:pointer;background:var(--nuit);color:#fff;padding:12px 16px;border-radius:11px;font-weight:700;min-height:48px}
+.advanced-details[open] summary{margin-bottom:12px}
+.advanced-question{background:#fff;border:1px solid #d5dfed;border-radius:12px;padding:13px;margin:10px 0}
+.advanced-question label{display:block;font-weight:650;margin:6px 0}
+.advanced-question input{width:100%;max-width:100%;font-size:1.05rem;border:1.5px solid #72829b;border-radius:10px;padding:11px;font-family:inherit}
+.advanced-result{margin-top:8px;font-size:.9rem;line-height:1.6}
+.grammar-focus{background:#f3f7fc;border:1px solid #c8d8e9;border-radius:13px;padding:14px;margin:12px 0}
+.grammar-focus table{border-collapse:collapse;width:100%;margin:8px 0;background:white}
+.grammar-focus th,.grammar-focus td{text-align:left;padding:8px;border:1px solid #d6e0ed;font-size:.88rem}
+.grammar-focus p{margin:8px 0}
+.advanced-tip{color:#4b5568;font-size:.9rem}
 </style>
 </head>
 <body>
 <header>
   <div class="hrow">
-    <button class="logo" onclick="go('home')">清的法语小课堂<small>Le français avec Qing</small></button>
+    <button class="logo" onclick="go('home')">清的法语小课堂<small>Le français avec Qing · V8</small></button>
     <span class="badge">无需听力</span>
   </div>
 </header>
@@ -101,13 +125,64 @@ h2[id]{scroll-margin-top:90px}
 <script>
 "use strict";
 /* ---------- 存储 ---------- */
-var KEY="qingfr_v1";
+var KEY="qingfr_v1"; // Clé historique inchangée : ne jamais renommer lors des mises à jour.
+var SHADOW_KEY="qingfr_v1_safety_copy"; // Copie locale de secours, sur le même navigateur.
+var storageWarning=false;
+function isRecord(x){return !!x&&typeof x==="object"&&!Array.isArray(x);}
+function isProgressData(d){return isRecord(d)&&Array.isArray(d.done)&&Array.isArray(d.fav)&&Array.isArray(d.err)&&isRecord(d.mynotes)&&(!d.memory||isRecord(d.memory));}
+function normalizeProgress(d){
+  d=isRecord(d)?d:{};
+  return {done:Array.isArray(d.done)?d.done.filter(function(x){return typeof x==="string"&&/^([1-9]|1[0-2])-[1-5]$/.test(x);}):[],
+    fav:Array.isArray(d.fav)?d.fav:[],err:Array.isArray(d.err)?d.err:[],
+    mynotes:isRecord(d.mynotes)?d.mynotes:{},current:d.current||null,last:d.last||null,
+    memory:isRecord(d.memory)?d.memory:{}};
+}
+function load(){
+  var d=null;
+  try{
+    var raw=localStorage.getItem(KEY);
+    if(raw){try{var main=JSON.parse(raw);if(isProgressData(main))d=main;}catch(parseError){/* Essayer la copie de secours. */}}
+    // Restaurer la copie uniquement lorsque les données principales sont absentes ou illisibles.
+    if(!d){var secondary=localStorage.getItem(SHADOW_KEY);if(secondary){var copy=JSON.parse(secondary);if(isProgressData(copy)){d=copy;localStorage.setItem(KEY,JSON.stringify(copy));}}}
+  }catch(e){storageWarning=true;}
+  return normalizeProgress(d);
+}
 var S=load();
-function load(){try{var d=JSON.parse(localStorage.getItem(KEY)||"{}");}catch(e){var d={};}
-  return {done:d.done||[],fav:d.fav||[],err:d.err||[],mynotes:d.mynotes||{},current:d.current||null,last:d.last||null};}
-function save(){S.last=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function save(){
+  S.last=Date.now();
+  try{
+    var raw=JSON.stringify(S);
+    localStorage.setItem(KEY,raw);
+    localStorage.setItem(SHADOW_KEY,raw);
+    storageWarning=false;
+  }catch(e){storageWarning=true;}
+}
+function storageNotice(){return storageWarning?'<div class="fbk bad" role="alert">⚠️ 浏览器无法保存学习记录。请检查是否使用无痕浏览，并先下载学习备份。学习期间不要清除网站数据。</div>':'';}
+// Mettre à jour la copie de secours dès l'ouverture, y compris pour les anciennes versions.
+if(!storageWarning)save();
 function isDone(id){return S.done.indexOf(id)>=0;}
 function toggleDone(id){if(!isDone(id))S.done.push(id);save();}
+/* V6: espacements de revision, sans changer l'identifiant de sauvegarde V5 */
+var REVIEW_DELAYS=[1,3,7,14];
+function dayStamp(){return Math.floor(Date.now()/86400000);}
+function memoryKey(fr){return String(fr).trim().toLowerCase();}
+function encounterWords(l){
+  if(!S.memory)S.memory={};
+  l.words.forEach(function(w){var k=memoryKey(w[0]);
+    if(!S.memory[k])S.memory[k]={stage:0,due:dayStamp()+1,seen:dayStamp(),ok:0};
+  });save();
+}
+function dueItems(){
+  if(!S.memory)S.memory={};
+  var w=allWords(),seen={};
+  return w.filter(function(item){var k=memoryKey(item.fr);if(seen[k])return false;seen[k]=1;return S.memory[k]&&S.memory[k].due<=dayStamp();});
+}
+function answerMemory(fr,ok){
+ var k=memoryKey(fr),r=S.memory[k]||{stage:0,seen:dayStamp(),ok:0};
+ if(ok){r.stage=Math.min(4,(r.stage||0)+1);r.ok=(r.ok||0)+1;r.due=dayStamp()+REVIEW_DELAYS[Math.min(r.stage-1,3)];}
+ else{r.stage=0;r.due=dayStamp()+1;}
+ S.memory[k]=r;save();
+}
 
 /* ---------- 数据：60 课（12周 × 5天） ----------
    J1–J4 每天新内容；J5 为本周复习（由程序自动汇总本周词汇与句子生成）。
@@ -563,27 +638,95 @@ var PHRASES=[
  {fr:"Bonne semaine !",cn:"祝你这一周愉快！"}];
 var MOTS=["慢慢来，一点一点也很好。","今天又多认识了一个词，很棒。","不用赶进度，你说了算。","读得懂就是会，你已经会了。","轻松学一点，胜过压力学很多。","眼熟就好，见多了自然记住。","你的节奏是最好的节奏。","每一步都算数。"];
 /* ---------- Elix: liens externes de consultation, pas de videos re-hebergees ---------- */
-// Première sélection limitée à 30 mots simples. Certains sens peuvent avoir plusieurs signes.
+/* V7.1: recherche lexicale Elix. Les URL sont des recherches :
+   aucun résultat ni vidéo ne sont garantis pour un terme. */
 var ELIX_TERMS={
- "bonjour":"bonjour","merci":"merci","je":"je","tu":"tu", "il":"il", "elle":"elle",
- "oui":"oui","non":"non","salut":"salut","famille":"famille","père":"père",
- "mère":"mère","frère":"frère","sœur":"sœur","fils":"fils","fille":"fille",
- "enfant":"enfant","maison":"maison","travail":"travail","manger":"manger",
- "boire":"boire","dormir":"dormir","eau":"eau","pain":"pain",
- "café":"café","train":"train","ville":"ville","amour":"amour",
- "ami":"ami","amie":"amie"
+ "bonjour":"bonjour","merci":"merci","je":"je","tu":"tu","il":"il","elle":"elle",
+ "nous":"nous","moi":"moi","toi":"toi","et":"et","avec":"avec","aussi":"aussi",
+ "beaucoup":"beaucoup","toujours":"toujours","parfois":"parfois","jamais":"jamais",
+ "rien":"rien","plus":"plus","vite":"vite","ensuite":"ensuite",
+ "chinois":"chinois","chinoise":"chinois","comment":"comment","s'appeler":"appeler",
+ "lire":"lire","écrire":"écrire","sourd / sourde":"sourd","sourde":"sourde",
+ "la langue des signes":"langue des signes","lsf":"langue des signes",
+ "la famille":"famille","le père":"père","la mère":"mère","le frère":"frère",
+ "la sœur":"sœur","le fils":"fils","la fille":"fille","le mari":"mari",
+ "la femme":"femme","l'enfant":"enfant","la grand-mère":"grand-mère",
+ "le grand-père":"grand-père","les parents":"parents",
+ "un":"un","deux":"deux","trois":"trois","quatre":"quatre","cinq":"cinq",
+ "six":"six","sept":"sept","huit":"huit","neuf":"neuf","dix":"dix",
+ "l'heure":"heure","et demie":"demie","du matin":"matin","du soir":"soir",
+ "aujourd'hui":"aujourd'hui","lundi":"lundi","mardi":"mardi","mercredi":"mercredi",
+ "jeudi":"jeudi","vendredi":"vendredi","samedi":"samedi","dimanche":"dimanche",
+ "demain":"demain","la journée":"journée","le matin":"matin","le soir":"soir",
+ "se réveiller":"réveiller","le petit-déjeuner":"petit-déjeuner","boire":"boire",
+ "l'eau":"eau","travailler":"travailler","le travail":"travail","le bureau":"bureau",
+ "la pause":"pause","vingt minutes":"minute","le dîner":"dîner","regarder":"regarder",
+ "télé":"télévision","fatigué / fatiguée":"fatigué","manger":"manger",
+ "le pain":"pain","le riz":"riz","le fromage":"fromage","le poisson":"poisson",
+ "la viande":"viande","le café":"café","le thé":"thé","le jus":"jus","lait":"lait",
+ "s'il vous plaît":"s'il vous plaît","s'il te plaît":"s'il te plaît",
+ "combien ?":"combien","l'euro":"euro","cher / chère":"cher","les fruits":"fruit",
+ "le menu":"menu","la commande":"commande","l'addition":"addition",
+ "bon / bonne":"bon",
+ "à gauche":"gauche","à droite":"droite","tout droit":"tout droit","où ?":"où",
+ "la rue":"rue","la gare":"gare","le train":"train","le métro":"métro","le bus":"bus",
+ "le billet":"billet","aller":"aller","je vais":"aller","tu vas":"aller",
+ "venir":"venir","tourner":"tourner","prendre":"prendre",
+ "près de":"près","la ville":"ville",
+ "la maison":"maison","la chambre":"chambre","la cuisine":"cuisine",
+ "la salle de bain":"salle de bain","le salon":"salon","le lit":"lit","la table":"table",
+ "la chaise":"chaise","la porte":"porte","la fenêtre":"fenêtre",
+ "habiter":"habiter","j'habite":"habiter","l'appartement":"appartement",
+ "grand / grande":"grand","petit / petite":"petit",
+ "je suis":"être","tu es":"être","il est":"être","elle est":"être",
+ "j'ai":"avoir","tu as":"avoir","il a":"avoir","elle a":"avoir",
+ "je fais":"faire","tu fais":"faire","faire":"faire","sourde":"sourde",
+ "content / contente":"content","triste":"triste","calme":"calme","sympa":"sympathique",
+ "aimer":"aimer","j'aime":"aimer","aimer bien":"aimer","je voudrais":"vouloir",
+ "vouloir":"vouloir","peux-tu ? / tu peux ?":"pouvoir","m'aider":"aider",
+ "bonne journée":"journée","bonne nuit":"nuit","à ce soir":"soir","à demain":"demain",
+ "à bientôt":"bientôt",
+ "la france":"france","le français":"français","la langue":"langue","paris":"paris",
+ "vivre":"vivre","la cathédrale":"cathédrale","le fleuve":"fleuve",
+ "la normandie":"normandie","visiter":"visiter",
+ "le musée":"musée","la place":"place","l'église":"église","beau / belle":"beau",
+ "la chine":"chine","le pays":"pays","je viens de…":"venir","je viens de":"venir",
+ "entre":"entre",
+ "je m'appelle…":"appeler","je m'appelle":"appeler",
+ "c'est combien ?":"combien","je mange":"manger",
+ "je bois":"boire","je travaille":"travailler","à côté de":"côté",
+ "dans":"dans","sur":"sur","sous":"sous","devant":"devant","mon":"mon","ma":"ma",
+ "coucou":"coucou","salut":"salut","ça va ?":"ça va","oui":"oui","non":"non",
+ "d'accord":"d'accord","pardon":"pardon","qui ?":"qui",
+ "pourquoi ?":"pourquoi","parce que":"parce que","bravo !":"bravo",
+ "une conversation":"conversation","un message":"message","répondre":"répondre",
+ "envoyer":"envoyer","une question":"question","libre":"libre","continuer":"continuer",
+ 
 };
+(function(){var norm={},k;for(k in ELIX_TERMS){if(Object.prototype.hasOwnProperty.call(ELIX_TERMS,k)){norm[elixKey(k)]=ELIX_TERMS[k];}}ELIX_TERMS=norm;})();
+function elixKey(w){
+  var t=String(w||"").trim().toLowerCase();
+  t=t.replace(/（[^）]*）/g,"").replace(/\(\)/g,"");   // annotations chinoises
+  t=t.replace(/[…?!。\s]+$/,"").trim();                   // ponctuation finale
+  t=t.replace(/\s*\/\s*/g," / ");                        // espaces autour du slash
+  return t;
+}
 function elixTerm(word){
-  var t=String(word||"").trim().toLowerCase();
-  // Les variantes avec article le/la/l' sont cherchées sous leur lemme.
-  t=t.replace(/^(le |la |les |l')/,"");
-  return Object.prototype.hasOwnProperty.call(ELIX_TERMS,t)?ELIX_TERMS[t]:null;
+  var t=elixKey(word);
+  if(!t)return null;
+  if(Object.prototype.hasOwnProperty.call(ELIX_TERMS,t))return ELIX_TERMS[t];
+  var bare=t.replace(/^(le |la |les |l')/,"").replace(/^ne…/,"");
+  if(Object.prototype.hasOwnProperty.call(ELIX_TERMS,bare))return ELIX_TERMS[bare];
+  return null;
 }
 function elixButton(word){
   var term=elixTerm(word);
   if(!term)return "";
   var url="https://dico.elix-lsf.fr/dictionnaire/"+encodeURIComponent(term);
-  return '<a class="elixlink" href="'+url+'" target="_blank" rel="noopener noreferrer" aria-label="在 Elix 查询 '+esc(term)+' 的 LSF 手语">🤟 在 Elix 查看 LSF ↗</a>';
+  var key=elixKey(word),direct=(key===elixKey(term)||key==="le "+elixKey(term)||key==="la "+elixKey(term)||key==="les "+elixKey(term)||key==="l'"+elixKey(term));
+  var label=direct?"🤟 在 Elix 查询手语 ↗":"🤟 在 Elix 搜索："+esc(term)+" ↗";
+  var hint=direct?"查询这个词的手语；可能有多个词义，也可能暂无视频。":"这是相关词或动词原形，并非整句的逐词手语翻译。";
+  return '<a class="elixlink" href="'+url+'" target="_blank" rel="noopener noreferrer" title="'+hint+'" aria-label="'+hint+'">'+label+'</a>';
 }
 /* ---------- 工具 ---------- */
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
@@ -623,17 +766,22 @@ function renderHome(){
   var nl=nextLesson();
   var mot=MOTS[new Date().getDate()%MOTS.length];
   var h='<h1>清的法语小课堂</h1><p class="muted">轻松学一点法语 · 无需听力 · 适合 iPhone 和电脑 · <span class="badge">免费 · 无需注册</span></p>';
-  h+='<div class="card"><h3>我的进度</h3><div class="pbar"><div class="pfill" style="width:'+pct+'%"></div></div>'+
+  h+=storageNotice();
+  h+='<div class="card"><h3>我的进度</h3><p class="muted">📱 仅显示这台设备的学习记录，不会自动同步给别人。</p><div class="pbar"><div class="pfill" style="width:'+pct+'%"></div></div>'+
      '<p class="muted">已完成 '+ALL.filter(function(l){return isDone(l.w+'-'+l.d);}).length+' / '+ALL.length+' 节小课（'+pct+'%）</p>'+
      (nl?'<button class="btn" onclick="go(\'lesson\',{w:'+nl.w+',d:'+nl.d+'})">继续学习 →</button>':'<p>🎉 60 节全部完成！随时可回到任意一周复习。</p>')+' <button class="btn ghost" onclick="go(\'progress\')">📈 分享我的学习进度</button></div>';
+  var completedFirstWeek=ALL.filter(function(l){return l.w===1&&isDone(l.w+"-"+l.d);}).length;
+  if(completedFirstWeek===5)h+='<div class="fbk ok">🌷 第一周已经完成！做得很好。随时可以回到第一周复习，不必着急往前赶。</div>';
   h+='<div class="motmsg">💬 '+mot+'</div>';
+  var due=dueItems().length;
+  h+='<div class="card"><h3>🧠 今天的轻松复习</h3><p>已有 <b>'+due+'</b> 个词可以复习。昨天学过的词会回来，记住后再隔几天复习。</p><button class="btn ghost" onclick="go(\'rev\')">开始复习 →</button><p class="muted">不需要每天复习，也没有连续打卡压力。</p></div>';
   h+='<h2>12 周课程（自由节奏，不必按时完成）</h2>';
   WEEKS.forEach(function(wk){
     var ls=ALL.filter(function(l){return l.w===wk.n;});
     var dn=ls.filter(function(l){return isDone(l.w+"-"+l.d);}).length;
     h+='<button class="wkcard" onclick="go(\'plan\','+wk.n+')"><div class="wknum">'+wk.n+'</div><div style="flex:1"><b>第'+wk.n+'周 · '+wk.th+'</b><br><span class="muted">'+wk.d+' · 完成 '+dn+'/5</span></div><div>›</div></button>';
   });
-  h+='<p class="muted">每节小课约 20 分钟：① 5分钟学词 ② 5分钟看句子 ③ 5分钟做小游戏 ④ 5分钟复习或写一句。可以随时停，随时继续。</p>';
+  h+='<p class="muted">每节课可按自己的节奏学习：① 看词 ② 句子与语法 ③ 基础练习＋可选进阶挑战 ④ 写一句。做挑战不用重新完成旧课程。</p>';
   app.innerHTML=h;
 }
 /* ---------- 课程总览 / 周 ---------- */
@@ -651,6 +799,82 @@ function renderPlan(w){
   h+='</div><p style="margin-top:14px"><button class="btn ghost" onclick="go(\'plan\')">← 返回全部周</button></p>';
   app.innerHTML=h;
 }
+
+/* ---------- V8 : approfondissement facultatif, sans toucher a S.done ---------- */
+var V8_GRAMMAR={
+ "1-1":'<b>人称代词 + être（是）</b><p>“我”是 je，“你”是 tu。动词 être 在不同人称后会变形：je <b>suis</b>（我是），tu <b>es</b>（你是），il/elle <b>est</b>（他/她是）。不能写“je est”。</p><table><tr><th>谁？</th><th>正确写法</th><th>意思</th></tr><tr><td>je</td><td>je suis</td><td>我是</td></tr><tr><td>tu</td><td>tu es</td><td>你是</td></tr><tr><td>elle</td><td>elle est</td><td>她是</td></tr></table>',
+ "1-2":'<b>性别形式与形容词</b><p>形容一个人的国籍时，有些词随人物性别改变：<b>chinois</b>（男性），<b>chinoise</b>（女性）。记住完整的句子，而不是只看最后一个字母：<b>Il est chinois.</b> / <b>Elle est chinoise.</b></p><p>注意：法语里多数名词还有语法阴阳性，和人的性别不总相同。</p>',
+ "1-3":'<b>你问的关键问题：appeler、s’appeler、t’appelles 有什么区别？</b><p><b>appeler</b> 是动词原形，意思是“叫、呼叫某人”：<i>J’appelle Qing.</i>（我给 Qing 打电话／我叫 Qing。）</p><p><b>s’appeler</b> 是代词式动词的原形，意思是“名字叫……”。这里的 s’ 会随主语改变。</p><table><tr><th>人称</th><th>完整结构</th><th>中文</th></tr><tr><td>je</td><td>je <b>m’appelle</b></td><td>我叫……</td></tr><tr><td>tu</td><td>tu <b>t’appelles</b></td><td>你叫……</td></tr><tr><td>il / elle</td><td>il / elle <b>s’appelle</b></td><td>他／她叫……</td></tr></table><p><b>m’ / t’ / s’</b> 对应不同的人称；<b>appelle / appelles</b> 是动词变位。<b>tu t’appelles</b> 需要两个部分：t’ + appelles。字母 <b>-s</b> 是“tu”的常见词尾。不要把 <b>t’appelles</b> 当作另一个独立动词。</p>',
+ "1-4":'<b>être + 身份；lire / écrire</b><p>完整句子：<b>Je suis sourde.</b>（我是一名聋人，女性形式。）<b>Je lis le français.</b>（我阅读法语。）<b>J’écris une phrase.</b>（我写一个句子。）</p><p>法语书面语与 LSF 是不同的语言；看到一个 LSF 手语视频不等于整句法语的语法也一样。</p>',
+ "1-5":'<b>复习：自己造句</b><p>把前三天学到的结构连起来：<b>Je m’appelle Qing. Je suis chinoise. J’apprends le français.</b>（我叫 Qing。我是中国人。我学习法语。）</p><p>遇到新句子先找主语，再找动词：例如 <b>je + suis</b>，<b>tu + es</b>，<b>je + m’appelle</b>。</p>'
+};
+var V8_WEEK_GRAMMAR={
+ 2:'这周学习名词的阴阳性与物主词：mon père、ma mère。注意：mon / ma 是跟着后面的名词变化，不是跟着说话者的性别变化。',
+ 3:'数字和时间里常见固定结构：Il est + 数字 + heure(s)。1 点是 une heure，2 点是 deux heures。日期和星期的表达不能总按汉语逐字翻译。',
+ 4:'动作词的原形与“我”的形式不同，例如 travailler → je travaille，boire → je bois。先在句子中辨认主语和动词。',
+ 5:'点餐常见冠词与部分冠词：un café、du pain、de l’eau。注意 un 和 du 表达的意思不同。',
+ 6:'指路时识别介词和动词：à gauche、à droite、tout droit；Je vais au bureau（去）和 Je suis au bureau（在）不同。',
+ 7:'句型 il y a 表示某处“有”；dans / sur / sous 用来表达不同位置。可以用实物位置自己写句子。',
+ 8:'重点比较 être、avoir、aller、faire 在 je / tu / il / elle 后的变位。否定 ne…pas 把变位动词放在中间。',
+ 9:'表示情感时比较 j’aime、je n’aime pas、je voudrais。对熟人说 s’il te plaît，对不熟的人说 s’il vous plaît。',
+ 10:'观察问题句、回答句和否定句的词序。试着不看中文提示，写一条你真的会发出的短消息。',
+ 11:'阅读一小段法语时找三个信息：谁（主语）、做什么（动词）、何时/何地（时间或地点）。',
+ 12:'综合前面所学内容，不只做选择题：写完整句子、修改错误、重新表达同一个意思。'
+};
+function grammarFocusV8(l){
+ var id=l.w+'-'+l.d;
+ var txt=V8_GRAMMAR[id]||('<b>进阶语法提示</b><p>'+esc(V8_WEEK_GRAMMAR[l.w]||'把新词放到完整句子里使用。')+'</p>');
+ return '<section class="grammar-focus" aria-label="深入理解语法"><h3>🔎 深入理解：为什么这样写？</h3>'+txt+'</section>';
+}
+function v8ChallengeData(l){
+ if(l.w===1&&l.d===3){return [
+  {label:'填空：我叫 Qing → Je ___ appelle Qing.', answer:"m'", tip:'主语是 je → m’。'},
+  {label:'填空：你叫什么？ → Comment tu t’___ ?', answer:'appelles',tip:'主语是 tu，写 appelles（双 l，词尾 s）。'},
+  {label:'填空：她叫 Marie → Elle ___ appelle Marie.',answer:"s'",tip:'主语是 elle → s’。'}
+ ];}
+ if(l.w===1&&l.d===1){return [
+  {label:'填空：我是 Qing。 → Je ___ Qing.',answer:'suis',tip:'être：je suis。'},
+  {label:'填空：你是 Qing。 → Tu ___ Qing.',answer:'es',tip:'être：tu es。'},
+  {label:'填空：她是 Qing。 → Elle ___ Qing.',answer:'est',tip:'être：elle est。'}
+ ];}
+ var forms=l.exs.filter(function(x){return x.t==='fill'&&typeof x.a==='string'&&x.a.length<50;}).slice(0,2);
+ var a=forms.map(function(x){return {label:x.q,answer:x.a,tip:x.exp||'回看上面的句子和讲解。'};});
+ var unique={};a=a.filter(function(x){var k=x.label+'|'+x.answer;if(unique[k])return false;unique[k]=1;return true;});
+ if(a.length<2&&l.words.length){var w=l.words[0];a.push({label:'不看词卡，写出「'+w[1]+'」的法语（可以包含冠词）。',answer:w[0],tip:'回忆今天第一张词卡。'});}
+ return a;
+}
+function advancedChallengeV8(l){
+ var id=l.w+'-'+l.d, questions=v8ChallengeData(l);
+ var h='<section class="advanced-wrap"><h3>🌟 进阶挑战 · 更有深度的练习</h3>'+
+ '<p class="advanced-tip">根据你的反馈增加了填空和语法解释。挑战自选；不必重复第一周，也不会改变已经完成的进度。</p>'+
+ '<details class="advanced-details"><summary>打开进阶挑战（不计入课程完成）</summary>';
+ questions.forEach(function(x,i){var label=esc(x.label);h+='<div class="advanced-question"><label for="v8-fill-'+i+'">'+(i+1)+'. '+label+'</label>'+
+ '<input id="v8-fill-'+i+'" autocomplete="off" spellcheck="false" placeholder="在这里输入法语答案">'+
+ '<button type="button" class="btn ghost" style="margin-top:8px" onclick="checkV8Challenge('+i+')">检查答案</button>'+
+ '<div class="advanced-result" id="v8-result-'+i+'" role="status" aria-live="polite"></div></div>';});
+ h+='<div class="advanced-question"><b>✍️ 独立写一句（没有唯一答案）</b><p>把下面这句话翻成法语，尽量不看上面的例句：</p><p>'+esc(l.ex[0]?l.ex[0][1]:l.th)+'</p>'+
+ '<textarea id="v8-translation" class="txt" style="min-height:86px" placeholder="自己尝试写完整的法语句子……"></textarea>'+
+ '<button class="btn ghost" type="button" onclick="revealV8Example()">看参考答案</button>'+
+ '<p id="v8-example" class="advanced-result" role="status" aria-live="polite"></p>'+
+ '<p class="advanced-tip">参考答案只是一个示例，自己写的其他正确表达也可能成立。文字不会自动发送，也不影响已有记录。</p></div></details></section>';
+ return h;
+}
+function checkV8Challenge(i){
+ if(!curLesson)return;
+ var l=getLesson(curLesson.w,curLesson.d);if(!l)return;
+ var q=v8ChallengeData(l)[i],input=document.getElementById('v8-fill-'+i),out=document.getElementById('v8-result-'+i);
+ if(!q||!input||!out)return;
+ var val=norm(input.value),expected=norm(q.answer);
+ if(!val){out.textContent='先写下你的答案。';return;}
+ var ok=val===expected;
+ out.className='advanced-result fbk '+(ok?'ok':'bad');
+ out.textContent=ok?'✓ 正确！'+q.tip:'再想想。提示：'+q.tip+'（参考答案：'+q.answer+'）';
+}
+function revealV8Example(){
+ if(!curLesson)return;var l=getLesson(curLesson.w,curLesson.d),out=document.getElementById('v8-example');
+ if(l&&out&&l.ex[0])out.textContent='参考写法：'+l.ex[0][0];
+}
+
 /* ---------- 课程页 ---------- */
 var exState; // 当前课练习状态
 function renderLesson(a){
@@ -661,18 +885,20 @@ function renderLesson(a){
   var h='<p class="muted"><a href="javascript:void(0)" onclick="go(\'plan\','+l.w+')">第'+l.w+'周</a> · 第'+l.d+'天</p>';
   h+='<h1>'+l.th+'</h1>';
   if(isDone(id))h+='<p><span class="tag">✓ 已完成</span></p>';
-  h+='<div class="card"><h3>今天的小目标</h3><p>'+l.goal+'</p><p class="muted">四个小步骤，每步约5分钟。可以跳过或暂停。</p></div>';
+  h+='<div class="card"><h3>今天的小目标</h3><p>'+l.goal+'</p><p class="muted">四个步骤，按自己的节奏学习。基础练习之后可自选「进阶挑战」，不影响已完成的课程。</p></div>';
   h+='<div class="lessonsteps"><a href="#words">① 词语 · 5分钟</a><a href="#examples">② 短句 · 5分钟</a><a href="#games">③ 游戏 · 5分钟</a><a href="#writing">④ 写作 · 5分钟</a></div>';
   /* 块1：认词（5分钟） */
-  h+='<h2 id="words">① 认一认词 <span class="muted">（约 5 分钟）</span></h2>';
-  h+='<div class="elixintro">🤟 <b>LSF 手语辅助</b>：部分词语可以打开 Elix，观看法国手语词典中的相关手语（如果提供视频）。这是额外帮助，不需要每个都看。<div class="elixnote">点击后会打开 Elix 网站。手语与法语书面语并非逐词对应；请结合中文意思理解。</div></div>';
-  l.words.slice(0,5).forEach(function(wd){
-    h+='<div class="wordcard"><div class="wfr">'+esc(wd[0])+'</div><div class="whz">'+esc(wd[1])+'</div><div class="wpy">拼音（汉字读音，不是法语发音）：'+esc(wd[2])+'</div>'+elixButton(wd[0])+'</div>';
+  h+='<h2 id="words">① 认一认词 <span class="muted">（按需学习）</span></h2>';
+  h+='<div class="elixintro">🤟 <b>LSF 手语辅助</b>：部分词语可以打开 Elix，查找相关词语的法国手语（有些词没有视频）。这是额外帮助，不需要每个都看。<div class="elixnote">点击单词卡片中的蓝色 🤟 按钮会跳转到 Elix（新页面），再查看该词是否有视频。没有蓝色按钮时表示我们还没有关联这个词。<br><a class="elixlink" href="https://dico.elix-lsf.fr/" target="_blank" rel="noopener noreferrer">🤟 打开 Elix 手语词典 ↗</a></div></div>';
+  l.words.forEach(function(wd){
+    h+='<div class="wordcard">'+visualIcon(wd[0])+'<div class="wfr">'+esc(wd[0])+'</div><div class="whz">'+esc(wd[1])+'</div><div class="wpy">拼音（汉字读音，不是法语发音）：'+esc(wd[2])+'</div>'+elixButton(wd[0])+'</div>';
   });
   /* 块2：例句和语法（5分钟） */
   h+='<h2 id="examples">② 看例句 <span class="muted">（约 5 分钟）</span></h2>';
-  l.ex.slice(0,2).forEach(function(e){h+='<div class="card"><div class="exfr">'+esc(e[0])+'</div><div>'+esc(e[1])+'</div></div>';});
+  l.ex.forEach(function(e){h+='<div class="card"><div class="exfr">'+esc(e[0])+'</div><div>'+esc(e[1])+'</div></div>';});
   h+='<div class="card"><h3>📖 小讲解</h3><p>'+l.gram+'</p></div>';
+  h+=grammarFocusV8(l);
+  h+=dialogueBox(l);
   /* 块3：练习（5分钟） */
   h+='<h2 id="games">③ 小练习 <span class="muted">（约 5 分钟）</span></h2><p class="muted">每题都有即时讲解。答错没关系，看看解释再继续。</p>';
   var exs=l.exs.slice();
@@ -681,11 +907,13 @@ function renderLesson(a){
   if(mw.length>=3&&!exs.some(function(x){return x.t==="match";})){exs.push({t:"match",pairs:mw});}
   exState.total=exs.length;
   h+='<div id="exbox"></div>';
+  h+=advancedChallengeV8(l);
   /* 块4：小结 + 写一句（5分钟） */
   h+='<h2 id="writing">④ 收个尾：复习或写一句 <span class="muted">（约 5 分钟）</span></h2>';
   var mys=S.mynotes&&S.mynotes[id]?S.mynotes[id]:"";
   h+='<div class="card" id="finbox">'+
      '<p>把今天的词在心里再过一遍，然后试着<b>用今天的词写一句法语</b>（想写什么就写什么，没有对错）。写完自动保存在这台设备上。</p>'+
+     '<p class="muted">你也可以回答上面的小对话，再把句子发给你想分享的人。无需完成任何作业。</p>'+
      '<p class="muted">可以用这些词：'+l.words.map(function(w){return "<span class=tag>"+esc(w[0])+"</span>";}).join("")+'</p>'+
      '<textarea id="myline" class="txt" style="min-height:80px" placeholder="用今天的一句话试试看……">'+esc(mys)+'</textarea>'+
      '<div style="margin-top:10px"><button class="btn ghost" onclick="saveMyLine(\''+id+'\')">保存我的句子</button> '+
@@ -704,6 +932,7 @@ function renderLesson(a){
 }
 function finishLesson(w,d){
   saveMyLine(w+"-"+d);
+  var lessonToSave=getLesson(w,d);if(lessonToSave)encounterWords(lessonToSave);
   toggleDone(w+"-"+d);
   if(isDone(w+"-"+d)){var ii=ALL.findIndex(function(l){return l.w===w&&l.d===d;});var next=ALL[ii+1];if(next)S.current={w:next.w,d:next.d};save();go("plan",w);}
   else renderLesson({w:w,d:d});
@@ -802,13 +1031,17 @@ function renderDictList(){
   var ws=allWords().filter(function(w){return !q||w.fr.toLowerCase().indexOf(q)>=0||w.cn.indexOf(q)>=0;});
   document.getElementById("dlist").innerHTML=ws.length?ws.map(function(w){
     var fav=S.fav.indexOf(w.fr)>=0;
-    return '<div class="card dictrow"><div class="grow"><div class="wfr" style="font-size:1.4rem">'+esc(w.fr)+'</div><div class="whz" style="font-size:1.2rem">'+esc(w.cn)+' <span class="wpy">（'+esc(w.py)+'）</span></div><span class="tag">第'+w.w+'周</span>'+elixButton(w.fr)+'</div><button class="star" aria-label="收藏" onclick="toggleFav(\''+w.fr.replace(/'/g,"\\'")+'\');renderDictList()">'+(fav?"⭐":"☆")+'</button></div>';
+    return '<div class="card dictrow"><div class="grow"><div class="wfr" style="font-size:1.4rem">'+esc(w.fr)+'</div><div class="whz" style="font-size:1.2rem">'+esc(w.cn)+' <span class="wpy">（'+esc(w.py)+'）</span></div><span class="tag">第'+w.wk+'周</span>'+elixButton(w.fr)+'</div><button class="star" aria-label="收藏" onclick="toggleFav(\''+w.fr.replace(/'/g,"\\'")+'\');renderDictList()">'+(fav?"⭐":"☆")+'</button></div>';
   }).join(""):'<p class="muted">没有找到这个词。试试别的写法？</p>';
 }
 function toggleFav(fr){var i=S.fav.indexOf(fr);if(i<0)S.fav.push(fr);else S.fav.splice(i,1);save();}
 /* ---------- 复习 ---------- */
 function renderRev(){
   var h='<h1>复习</h1>';
+  var due=dueItems();
+  h+='<div class="card"><h3>🧠 今天可以回顾的词（'+due.length+'）</h3><p class="muted">复习日程：学后约1天、3天、7天和14天。记不住也没关系。</p>';
+  h+=due.length?'<button class="btn" onclick="startSpacedReview()">复习今天的词 →</button><div id="spacedbox"></div>':'<p>今天没有必须复习的词。想学的时候再来就好。🌷</p>';
+  h+='</div>';
   var ws=allWords().filter(function(w){return S.fav.indexOf(w.fr)>=0;});
   h+='<div class="card"><h3>⭐ 我的收藏（'+ws.length+'）</h3>';
   h+=ws.length?'<div id="revbox"></div><button class="btn" style="margin-top:8px" onclick="startRevQuiz()">开始小测（收藏词）</button>':'<p class="muted">还没有收藏。去「词典」点 ⭐ 收藏生词，这里会变成专属你的小测。</p>';
@@ -865,7 +1098,8 @@ function progressStats(){
     l.words.forEach(function(w){words[w[0].trim().toLowerCase()]=true;});
   });
   var notes=Object.keys(S.mynotes||{}).filter(function(id){return (S.mynotes[id]||"").trim().length>0;}).length;
-  return {done:studied.length,words:Object.keys(words).length,notes:notes,weeks:weeks,
+  var reviewKnown=Object.keys(S.memory||{}).filter(function(k){return (S.memory[k].ok||0)>0;}).length;
+  return {done:studied.length,words:Object.keys(words).length,notes:notes,reviewKnown:reviewKnown,weeks:weeks,
     last:studied.length?studied[studied.length-1]:null};
 }
 function progressText(){
@@ -873,24 +1107,33 @@ function progressText(){
   var lines=["📚 清的法语小课堂 · 我的学习进度", "Le français avec Qing", "",
     "✅ 已完成课程："+p.done+" / "+ALL.length,
     "📖 已接触词汇："+p.words+" 个（来自已完成课程）",
+    "🧠 自评记得过的词："+p.reviewKnown+" 个（不代表已掌握）",
     "✍️ 已写学习句子："+p.notes+" 条"];
   var wkeys=Object.keys(p.weeks).map(Number).sort(function(a,b){return a-b;});
   if(wkeys.length){lines.push("", "🗓 每周完成情况：");wkeys.forEach(function(w){lines.push("第 "+w+" 周："+p.weeks[w]+" / 5 节");});}
-  if(p.last)lines.push("", "最近完成：第 "+p.last.w+" 周 · 第 "+p.last.d+" 课 · "+p.last.th);
+  if(p.last)lines.push("", "课程顺序中最后完成：第 "+p.last.w+" 周 · 第 "+p.last.d+" 课 · "+p.last.th);
   lines.push("", "🌷 我按照自己的节奏慢慢学习。", "https://francais-avec-qing.onrender.com/");
   return lines.join("\n");
 }
 function renderProgressShare(){
   var p=progressStats(),pct=Math.round(p.done/ALL.length*100);
-  var h='<h1>📈 我的学习进度</h1><p class="muted">这是你的个人学习记录。只有你主动点击分享按钮，别人才会看到。没有成绩，也没有压力。</p>';
+  var h='<h1>📈 我的学习进度</h1><p class="muted">📱 只显示当前手机或浏览器里的进度，不是其他人的学习记录。只有你主动分享，别人才会看到。</p>'+storageNotice();
   h+='<div class="card"><h3>已经学了这么多！</h3><div class="pbar"><div class="pfill" style="width:'+pct+'%"></div></div>'+
     '<p><b>'+p.done+' / '+ALL.length+'</b> 节小课（'+pct+'%）</p>'+
     '<p>📖 已接触词汇：<b>'+p.words+'</b> 个</p>'+
+    '<p>🧠 复习时自评记得：<b>'+p.reviewKnown+'</b> 个词</p>'+ 
     '<p>✍️ 已写学习句子：<b>'+p.notes+'</b> 条</p>'+
     '<p class="muted">词汇是已完成课程中出现过的不同法语词语数量，不代表已经全部记住；这里不统计练习成绩。</p></div>';
   h+='<div class="card"><h3>每周的小脚印</h3>';
   WEEKS.forEach(function(w){var n=p.weeks[w.n]||0;h+='<div class="row"><span>第 '+w.n+' 周 · '+esc(w.th)+'</span><b>'+n+' / 5</b></div>';});
-  h+='</div><div class="card"><h3>💛 自愿分享给亲爱的人</h3>'+
+  h+='</div><div class="card"><h3>🔐 保存自己的学习记录</h3>'+ 
+    '<p>学习记录只保存在这台设备的浏览器。如果清理浏览器数据或换手机，可能会丢失。你可以自己保存一份备份文件，需要时再恢复。</p>'+ 
+    '<button class="btn ghost" onclick="exportQingBackup()">⬇️ 下载我的学习备份</button> '+ 
+    '<label class="btn ghost" for="qing-restore" style="cursor:pointer">⬆️ 从备份恢复</label>'+ 
+    '<input type="file" id="qing-restore" accept=".json,application/json" style="display:none" onchange="importQingBackup(this)">'+
+    '<p class="muted">备份文件包含你的学习进度、收藏和你写的句子。请妥善保管，不要发送给陌生人。导入时会合并学习记录：已完成的课程不会变回未完成；冲突笔记保留当前设备的版本。</p>'+ 
+    '<p class="muted">⚠️ 若清除浏览器数据，同一设备内的安全副本也会消失。请另外下载 JSON 备份，妥善保存。</p></div>';
+  h+='<div class="card"><h3>💛 自愿分享给亲爱的人</h3>'+ 
     '<p>你可以把下面的学习总结通过 WhatsApp 发送给你想分享的人。网站不会自动发送，也不会直接让别人查看你的进度。</p>'+
     '<textarea id="progress-preview" class="txt" readonly style="height:240px;min-height:240px;font-size:.87rem;line-height:1.5">'+esc(progressText())+'</textarea>'+
     '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn" onclick="sendProgressWhatsApp()">💬 用 WhatsApp 分享</button> '+
@@ -914,6 +1157,49 @@ function fallbackCopyProgress(t,btn){
   var ta=document.createElement("textarea");ta.value=t;ta.setAttribute("readonly","");ta.style.position="fixed";ta.style.left="-9999px";
   document.body.appendChild(ta);ta.select();try{if(document.execCommand("copy"))btn.textContent="已复制 ✓";else btn.textContent="请手动复制上方文字";}catch(e){btn.textContent="请手动复制上方文字";}document.body.removeChild(ta);
 }
+
+/* Sauvegarde facultative: données locales uniquement, aucun envoi réseau. */
+function exportQingBackup(){
+  var payload={format:"qing-francais-backup",version:1,exportedAt:new Date().toISOString(),data:{done:S.done,fav:S.fav,err:S.err,mynotes:S.mynotes,current:S.current,memory:S.memory}};
+  var blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json;charset=utf-8"});
+  var url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download="qing-francais-sauvegarde.json";document.body.appendChild(a);a.click();a.remove();
+  setTimeout(function(){URL.revokeObjectURL(url);},1200);
+}
+function importQingBackup(input){
+  var file=input.files&&input.files[0];if(!file)return;
+  if(file.size>2*1024*1024){alert("备份文件太大，无法导入。");input.value="";return;}
+  var reader=new FileReader();
+  reader.onerror=function(){alert("无法读取这个文件。");input.value="";};
+  reader.onload=function(){
+    try{
+      var obj=JSON.parse(reader.result);
+      if(obj.format!=="qing-francais-backup"||obj.version!==1||!obj.data||!Array.isArray(obj.data.done)||!Array.isArray(obj.data.fav)||!Array.isArray(obj.data.err)||!obj.data.mynotes||typeof obj.data.mynotes!=="object"||!obj.data.memory||typeof obj.data.memory!=="object")throw Error("format");
+      var d=obj.data;
+      if(d.done.length>200||d.fav.length>2000||d.err.length>300)throw Error("volume");
+      if(!d.done.every(function(x){return typeof x==="string"&&/^([1-9]|1[0-2])-[1-5]$/.test(x);})||!d.fav.every(function(x){return typeof x==="string"&&x.length<120;}))throw Error("fields");
+      var notes=Object.keys(d.mynotes),keys=Object.keys(d.memory);
+      if(notes.length>65||keys.length>2000||!notes.every(function(k){return /^([1-9]|1[0-2])-[1-5]$/.test(k)&&typeof d.mynotes[k]==="string"&&d.mynotes[k].length<10000;}))throw Error("notes");
+      if(!keys.every(function(k){var r=d.memory[k];return k.length<120&&r&&typeof r==="object"&&Number.isFinite(r.due)&&r.due>=0&&Number.isFinite(r.stage)&&r.stage>=0&&r.stage<=4&&Number.isFinite(r.ok)&&r.ok>=0;}))throw Error("memory");
+      if(!confirm("确定要合并这个备份吗？已经完成的课程、收藏和当前笔记都不会被删除。"))return;
+      // Fusion sans perte : même un fichier plus ancien ne doit pas effacer le travail récent.
+      var combined=normalizeProgress(S);
+      combined.done=Array.from(new Set(combined.done.concat(d.done)));
+      combined.fav=Array.from(new Set(combined.fav.concat(d.fav)));
+      combined.err=combined.err.concat(d.err).slice(-300);
+      Object.keys(d.mynotes).forEach(function(id){if(!combined.mynotes[id]&&d.mynotes[id])combined.mynotes[id]=d.mynotes[id];});
+      Object.keys(d.memory).forEach(function(k){
+        var old=combined.memory[k],incoming=d.memory[k];
+        if(!old){combined.memory[k]=incoming;return;}
+        if((incoming.stage||0)>(old.stage||0)||((incoming.stage||0)===(old.stage||0)&&(incoming.ok||0)>(old.ok||0)))combined.memory[k]=incoming;
+      });
+      if(!combined.current)combined.current=d.current||null;
+      S=combined;save();go("progress");alert("学习记录已安全合并！以前完成的课程都保留了。");
+    }catch(e){alert("这个文件不是有效的学习备份，请检查文件。 ");}
+    finally{input.value="";}
+  };
+  reader.readAsText(file,"utf-8");
+}
 /* ---------- 使用说明 ---------- */
 function renderHelp(){
   var h='<h1>使用说明</h1>';
@@ -924,12 +1210,64 @@ function renderHelp(){
    '<li><b>③ 小练习（约5分钟）</b>：选择题、填空、排词、配对，答完立刻有讲解。</li>'+
    '<li><b>④ 复习或写一句（约5分钟）</b>：用今天的词写一句属于自己的法语（自动保存），然后点「完成本课」——或直接离开，进度自动保存。</li></ul>'+
    '<p class="muted">建议：每周 4 节新内容 + 周五轻松复习，另外两天完全休息。不想学的日子跳过就好，<b>没有必须完成的日程</b>。这个课堂不设考试、不设等级目标：会认、会用、自己觉得有意思，就是学会。</p></div>';
-  h+='<div class="card"><h3>🤟 Elix 手语词典</h3><p>部分词汇卡片和词典词条现在有「在 Elix 查看 LSF」按钮，点开可查询法国手语的视频（若对应词条有提供）。你可以自由决定要不要看，完全不影响课程。Elix 是第三方独立网站；本网站不保存、转载或复制它的视频。不同词义可能对应不同手语，请留意选择正确的意思。</p><p><a href="https://dico.elix-lsf.fr/" target="_blank" rel="noopener noreferrer">打开 Elix 官方词典 ↗</a></p></div>';
+  h+='<div class="card"><h3>🧠 轻松复习与图像</h3><p>学过的词会在约1、3、7、14天后重新出现。每次复习可以选择“记得”或“再看看”。图片符号仅辅助认识具体物品，并非真实手语；真正的 LSF 请查看 Elix。</p><p>有些课程有简短的书面对话。你可以模仿一句，也可以不写，没有强制成绩。</p></div>';
+  h+='<div class="card"><h3>🤟 Elix 手语词典</h3><p>部分词汇卡片和词典词条现在有「在 Elix 查询手语」按钮，点开可以在 Elix 查询相关手语；部分按钮搜索的是动词原形或相关词，并不是整句话的翻译，视频也不保证存在。你可以自由决定要不要看，完全不影响课程。Elix 是第三方独立网站；本网站不保存、转载或复制它的视频。不同词义可能对应不同手语，请留意选择正确的意思。</p><p><a href="https://dico.elix-lsf.fr/" target="_blank" rel="noopener noreferrer">打开 Elix 官方词典 ↗</a></p></div>';
   h+='<div class="card"><h3>关于拼音和 LSF</h3><p>卡片上的拼音标注的是<b>汉字（中文）的读音</b>，跟法语发音无关——我们完全不学法语发音。另外：LSF（法国手语）是一门独立的手语语言，和书面法语是两回事，课堂上不会混淆两者；需要手语交流时，由身边的人直接用 LSF 就好。</p></div>';
-  h+='<div class="card"><h3>进度与隐私</h3><p>进度、收藏、错题都保存在你当前设备的浏览器里（localStorage），<b>不需要注册</b>。iPhone 和电脑的进度<b>不会自动同步</b>。你可以在「📈 进度」中自愿通过 WhatsApp 分享学习总结，分享前由你选择收件人并确认。网站本身不自动发送任何个人学习记录。</p></div>';
+  h+='<div class="card"><h3>进度与隐私</h3><p>进度、收藏、错题都保存在你当前设备的浏览器里（localStorage），<b>不需要注册</b>。iPhone 和电脑的进度<b>不会自动同步</b>。你可以在「📈 进度」里下载备份，换设备时安全合并恢复；网站更新不会自动清空学习记录；请不要把备份文件随意转发。你可以在「📈 进度」中自愿通过 WhatsApp 分享学习总结，分享前由你选择收件人并确认。网站本身不自动发送任何个人学习记录。</p></div>';
   h+='<div class="card"><h3>小提示</h3><p>工作中只想学一小会儿？每课随时可以停，回来点主页的「继续学习」就能接上。没有提醒、没有通知，完全由你决定什么时候学。</p></div>';
   app.innerHTML=h;
 }
+
+/* ---------- V6: 图像帮助与简短书面对话 ---------- */
+var VISUALS={
+ "le pain":"🍞","pain":"🍞","la pomme":"🍎","pomme":"🍎","le café":"☕","café":"☕",
+ "le thé":"🍵","thé":"🍵","l'eau":"💧","eau":"💧","le riz":"🍚","riz":"🍚",
+ "le fromage":"🧀","le poisson":"🐟","le train":"🚆","train":"🚆",
+ "le bus":"🚌","bus":"🚌","le métro":"🚇","métro":"🚇","le billet":"🎫",
+ "la maison":"🏠","maison":"🏠","la chambre":"🛏️","la cuisine":"🍳",
+ "le lit":"🛏️","la table":"🍽️","la chaise":"🪑","la porte":"🚪","la fenêtre":"🪟",
+ "le livre":"📖","la mer":"🌊","la plage":"🏖️","le jardin":"🌳",
+ "le vélo":"🚲","le taxi":"🚕","le soleil":"☀️","la lune":"🌙"
+};
+function visualIcon(fr){var k=memoryKey(fr),symbol=VISUALS[k];return symbol?'<div class="v6visual" role="img" aria-label="图片提示">'+symbol+'</div>':'';}
+var DIALOGUES=[
+ ["Bonjour !", "你好！", "Bonjour !", "你好！"],
+ ["Tu as une famille ?", "你有家人吗？", "Oui, j'ai une famille.", "是的，我有家人。"],
+ ["À demain !", "明天见！", "À demain !", "明天见！"],
+ ["Ça va ?", "你还好吗？", "Oui, ça va bien.", "嗯，我很好。"],
+ ["Tu as faim ?", "你饿了吗？", "Oui, j'ai faim.", "是的，我饿了。"],
+ ["Où est la gare ?", "火车站在哪里？", "La gare est là.", "车站在那里。"],
+ ["Tu es à la maison ?", "你在家吗？", "Oui, je suis à la maison.", "是的，我在家。"],
+ ["Tu vas bien ?", "你好吗？", "Oui, je vais bien.", "是的，我很好。"],
+ ["Tu me manques.", "我想你。", "Toi aussi !", "我也想你！"],
+ ["Tu es à Rouen ?", "你在鲁昂吗？", "Oui, je suis à Rouen.", "是的，我在鲁昂。"],
+ ["Bonne journée !", "祝你今天愉快！", "Merci, toi aussi !", "谢谢，你也是！"],
+ ["Tu apprends le français ?", "你在学法语吗？", "Oui, petit à petit !", "是的，一点一点学！"]
+];
+function dialogueBox(l){
+ var dial=DIALOGUES[l.w-1];
+ return '<div class="card v6dialog"><h3>💬 一段很短的书面对话（自由选学）</h3>'+ 
+ '<div class="v6bubble"><strong>A : '+esc(dial[0])+'</strong><small>'+esc(dial[1])+'</small></div>'+
+ '<div class="v6bubble answer"><strong>B : '+esc(dial[2])+'</strong><small>'+esc(dial[3])+'</small></div>'+
+ '<p class="muted">可以把 B 的句子写进今天的笔记里，也可以自己试着写。只看懂就很好！</p></div>';
+}
+var v6review=[],v6index=0;
+function startSpacedReview(){
+ v6review=shuffle(dueItems()).slice(0,8);v6index=0;drawSpacedReview();
+}
+function drawSpacedReview(){
+ var box=document.getElementById('spacedbox');if(!box)return;
+ if(v6index>=v6review.length){box.innerHTML='<div class="fbk ok">🌷 今天的复习结束了！你可以随时继续。</div>';return;}
+ var w=v6review[v6index];
+ box.innerHTML='<div class="v6review"><p class="muted">'+(v6index+1)+' / '+v6review.length+' · 先想一想，再看答案</p>'+visualIcon(w.fr)+
+ '<div class="wfr">'+esc(w.fr)+'</div><button class="btn ghost" onclick="revealSpaced()">查看中文意思</button><div id="spacedanswer"></div></div>';
+}
+function revealSpaced(){var w=v6review[v6index],el=document.getElementById('spacedanswer');if(!el)return;
+ el.innerHTML='<p class="whz">'+esc(w.cn)+'</p><p class="muted">你刚才记得这个词吗？自己选就好。</p>'+ 
+ '<button class="btn ghost" onclick="gradeSpaced(false)">再看看</button> <button class="btn" onclick="gradeSpaced(true)">记得 ✓</button>';
+}
+function gradeSpaced(ok){var w=v6review[v6index];answerMemory(w.fr,ok);v6index++;drawSpacedReview();}
+
 /* ---------- 启动 ---------- */
 go("home");
 </script>
