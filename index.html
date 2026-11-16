@@ -82,6 +82,11 @@ h2[id]{scroll-margin-top:90px}
 .pairgrid button.selected{background:var(--creme2);border-color:var(--corail-d);box-shadow:inset 0 0 0 1px var(--corail-d)}
 .pairgrid button.matched{background:#E7F1E9;border-color:var(--ok);opacity:.65}
 @media(max-width:420px){html{font-size:16px}.badge{font-size:.62rem}.wordcard{padding:12px 13px}nav button{font-size:.67rem}}
+
+.elixlink{display:inline-flex;align-items:center;gap:7px;margin-top:10px;padding:9px 12px;min-height:44px;border-radius:10px;background:#E9EFF9;border:1px solid #B9CCE5;color:#1F2A44!important;text-decoration:none;font-size:.86rem;font-weight:650;}
+.elixlink:hover,.elixlink:focus-visible{background:#D8E8FA;}
+.elixnote{font-size:.8rem;color:var(--muted);margin-top:6px;line-height:1.5}
+.elixintro{background:#F1F6FC;border:1px solid #C7D9EA;border-radius:12px;padding:12px 14px;margin:12px 0}
 </style>
 </head>
 <body>
@@ -557,6 +562,29 @@ var PHRASES=[
  {fr:"J'apprends le français petit à petit.",cn:"我正在一点一点地学习法语。"},
  {fr:"Bonne semaine !",cn:"祝你这一周愉快！"}];
 var MOTS=["慢慢来，一点一点也很好。","今天又多认识了一个词，很棒。","不用赶进度，你说了算。","读得懂就是会，你已经会了。","轻松学一点，胜过压力学很多。","眼熟就好，见多了自然记住。","你的节奏是最好的节奏。","每一步都算数。"];
+/* ---------- Elix: liens externes de consultation, pas de videos re-hebergees ---------- */
+// Première sélection limitée à 30 mots simples. Certains sens peuvent avoir plusieurs signes.
+var ELIX_TERMS={
+ "bonjour":"bonjour","merci":"merci","je":"je","tu":"tu", "il":"il", "elle":"elle",
+ "oui":"oui","non":"non","salut":"salut","famille":"famille","père":"père",
+ "mère":"mère","frère":"frère","sœur":"sœur","fils":"fils","fille":"fille",
+ "enfant":"enfant","maison":"maison","travail":"travail","manger":"manger",
+ "boire":"boire","dormir":"dormir","eau":"eau","pain":"pain",
+ "café":"café","train":"train","ville":"ville","amour":"amour",
+ "ami":"ami","amie":"amie"
+};
+function elixTerm(word){
+  var t=String(word||"").trim().toLowerCase();
+  // Les variantes avec article le/la/l' sont cherchées sous leur lemme.
+  t=t.replace(/^(le |la |les |l')/,"");
+  return Object.prototype.hasOwnProperty.call(ELIX_TERMS,t)?ELIX_TERMS[t]:null;
+}
+function elixButton(word){
+  var term=elixTerm(word);
+  if(!term)return "";
+  var url="https://dico.elix-lsf.fr/dictionnaire/"+encodeURIComponent(term);
+  return '<a class="elixlink" href="'+url+'" target="_blank" rel="noopener noreferrer" aria-label="在 Elix 查询 '+esc(term)+' 的 LSF 手语">🤟 在 Elix 查看 LSF ↗</a>';
+}
 /* ---------- 工具 ---------- */
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 function norm(s){return String(s).normalize("NFC").toLowerCase().replace(/[.,!?;:'’«»\s]+/g," ").trim();}
@@ -565,7 +593,7 @@ function verb(t,o,n){t.addEventListener("click",function(){o();if(n)t.removeEven
 var app=document.getElementById("app");
 var cur="home", curLesson=null;
 /* ---------- 导航 ---------- */
-var NAV=[["home","🏠","主页"],["plan","🗓","课程"],["dict","📖","词典"],["rev","🔄","复习"],["share","💛","和你一起"],["help","❓","说明"]];
+var NAV=[["home","🏠","主页"],["plan","🗓","课程"],["dict","📖","词典"],["rev","🔄","复习"],["share","💛","和你一起"],["progress","📈","进度"],["help","❓","说明"]];
 function go(view,arg){
   if(view==="lesson"&&arg){S.current={w:arg.w,d:arg.d};save();}
   cur=view; curLesson=(view==="lesson")?arg:null;
@@ -576,6 +604,7 @@ function go(view,arg){
   else if(view==="dict")renderDict();
   else if(view==="rev")renderRev();
   else if(view==="share")renderShare();
+  else if(view==="progress")renderProgressShare();
   else if(view==="help")renderHelp();
   renderNav();
 }
@@ -596,7 +625,7 @@ function renderHome(){
   var h='<h1>清的法语小课堂</h1><p class="muted">轻松学一点法语 · 无需听力 · 适合 iPhone 和电脑 · <span class="badge">免费 · 无需注册</span></p>';
   h+='<div class="card"><h3>我的进度</h3><div class="pbar"><div class="pfill" style="width:'+pct+'%"></div></div>'+
      '<p class="muted">已完成 '+ALL.filter(function(l){return isDone(l.w+'-'+l.d);}).length+' / '+ALL.length+' 节小课（'+pct+'%）</p>'+
-     (nl?'<button class="btn" onclick="go(\'lesson\',{w:'+nl.w+',d:'+nl.d+'})">继续学习 →</button>':'<p>🎉 60 节全部完成！随时可回到任意一周复习。</p>')+'</div>';
+     (nl?'<button class="btn" onclick="go(\'lesson\',{w:'+nl.w+',d:'+nl.d+'})">继续学习 →</button>':'<p>🎉 60 节全部完成！随时可回到任意一周复习。</p>')+' <button class="btn ghost" onclick="go(\'progress\')">📈 分享我的学习进度</button></div>';
   h+='<div class="motmsg">💬 '+mot+'</div>';
   h+='<h2>12 周课程（自由节奏，不必按时完成）</h2>';
   WEEKS.forEach(function(wk){
@@ -636,8 +665,9 @@ function renderLesson(a){
   h+='<div class="lessonsteps"><a href="#words">① 词语 · 5分钟</a><a href="#examples">② 短句 · 5分钟</a><a href="#games">③ 游戏 · 5分钟</a><a href="#writing">④ 写作 · 5分钟</a></div>';
   /* 块1：认词（5分钟） */
   h+='<h2 id="words">① 认一认词 <span class="muted">（约 5 分钟）</span></h2>';
+  h+='<div class="elixintro">🤟 <b>LSF 手语辅助</b>：部分词语可以打开 Elix，观看法国手语词典中的相关手语（如果提供视频）。这是额外帮助，不需要每个都看。<div class="elixnote">点击后会打开 Elix 网站。手语与法语书面语并非逐词对应；请结合中文意思理解。</div></div>';
   l.words.slice(0,5).forEach(function(wd){
-    h+='<div class="wordcard"><div class="wfr">'+esc(wd[0])+'</div><div class="whz">'+esc(wd[1])+'</div><div class="wpy">拼音（汉字读音，不是法语发音）：'+esc(wd[2])+'</div></div>';
+    h+='<div class="wordcard"><div class="wfr">'+esc(wd[0])+'</div><div class="whz">'+esc(wd[1])+'</div><div class="wpy">拼音（汉字读音，不是法语发音）：'+esc(wd[2])+'</div>'+elixButton(wd[0])+'</div>';
   });
   /* 块2：例句和语法（5分钟） */
   h+='<h2 id="examples">② 看例句 <span class="muted">（约 5 分钟）</span></h2>';
@@ -772,7 +802,7 @@ function renderDictList(){
   var ws=allWords().filter(function(w){return !q||w.fr.toLowerCase().indexOf(q)>=0||w.cn.indexOf(q)>=0;});
   document.getElementById("dlist").innerHTML=ws.length?ws.map(function(w){
     var fav=S.fav.indexOf(w.fr)>=0;
-    return '<div class="card dictrow"><div class="grow"><div class="wfr" style="font-size:1.4rem">'+esc(w.fr)+'</div><div class="whz" style="font-size:1.2rem">'+esc(w.cn)+' <span class="wpy">（'+esc(w.py)+'）</span></div><span class="tag">第'+w.w+'周</span></div><button class="star" aria-label="收藏" onclick="toggleFav(\''+w.fr.replace(/'/g,"\\'")+'\');renderDictList()">'+(fav?"⭐":"☆")+'</button></div>';
+    return '<div class="card dictrow"><div class="grow"><div class="wfr" style="font-size:1.4rem">'+esc(w.fr)+'</div><div class="whz" style="font-size:1.2rem">'+esc(w.cn)+' <span class="wpy">（'+esc(w.py)+'）</span></div><span class="tag">第'+w.w+'周</span>'+elixButton(w.fr)+'</div><button class="star" aria-label="收藏" onclick="toggleFav(\''+w.fr.replace(/'/g,"\\'")+'\');renderDictList()">'+(fav?"⭐":"☆")+'</button></div>';
   }).join(""):'<p class="muted">没有找到这个词。试试别的写法？</p>';
 }
 function toggleFav(fr){var i=S.fav.indexOf(fr);if(i<0)S.fav.push(fr);else S.fav.splice(i,1);save();}
@@ -824,6 +854,66 @@ function wa(i){
   var t=encodeURIComponent(PHRASES[i].fr);
   window.open("https://wa.me/?text="+t,"_blank");
 }
+/* ---------- 可选的学习进度分享：本人明确点击才发送 ---------- */
+function progressStats(){
+  var ids=Object.create(null), studied=[], words=Object.create(null), weeks=Object.create(null);
+  (S.done||[]).forEach(function(id){ids[id]=true;});
+  ALL.forEach(function(l){
+    if(!ids[l.w+"-"+l.d])return;
+    studied.push(l);
+    weeks[l.w]=(weeks[l.w]||0)+1;
+    l.words.forEach(function(w){words[w[0].trim().toLowerCase()]=true;});
+  });
+  var notes=Object.keys(S.mynotes||{}).filter(function(id){return (S.mynotes[id]||"").trim().length>0;}).length;
+  return {done:studied.length,words:Object.keys(words).length,notes:notes,weeks:weeks,
+    last:studied.length?studied[studied.length-1]:null};
+}
+function progressText(){
+  var p=progressStats();
+  var lines=["📚 清的法语小课堂 · 我的学习进度", "Le français avec Qing", "",
+    "✅ 已完成课程："+p.done+" / "+ALL.length,
+    "📖 已接触词汇："+p.words+" 个（来自已完成课程）",
+    "✍️ 已写学习句子："+p.notes+" 条"];
+  var wkeys=Object.keys(p.weeks).map(Number).sort(function(a,b){return a-b;});
+  if(wkeys.length){lines.push("", "🗓 每周完成情况：");wkeys.forEach(function(w){lines.push("第 "+w+" 周："+p.weeks[w]+" / 5 节");});}
+  if(p.last)lines.push("", "最近完成：第 "+p.last.w+" 周 · 第 "+p.last.d+" 课 · "+p.last.th);
+  lines.push("", "🌷 我按照自己的节奏慢慢学习。", "https://francais-avec-qing.onrender.com/");
+  return lines.join("\n");
+}
+function renderProgressShare(){
+  var p=progressStats(),pct=Math.round(p.done/ALL.length*100);
+  var h='<h1>📈 我的学习进度</h1><p class="muted">这是你的个人学习记录。只有你主动点击分享按钮，别人才会看到。没有成绩，也没有压力。</p>';
+  h+='<div class="card"><h3>已经学了这么多！</h3><div class="pbar"><div class="pfill" style="width:'+pct+'%"></div></div>'+
+    '<p><b>'+p.done+' / '+ALL.length+'</b> 节小课（'+pct+'%）</p>'+
+    '<p>📖 已接触词汇：<b>'+p.words+'</b> 个</p>'+
+    '<p>✍️ 已写学习句子：<b>'+p.notes+'</b> 条</p>'+
+    '<p class="muted">词汇是已完成课程中出现过的不同法语词语数量，不代表已经全部记住；这里不统计练习成绩。</p></div>';
+  h+='<div class="card"><h3>每周的小脚印</h3>';
+  WEEKS.forEach(function(w){var n=p.weeks[w.n]||0;h+='<div class="row"><span>第 '+w.n+' 周 · '+esc(w.th)+'</span><b>'+n+' / 5</b></div>';});
+  h+='</div><div class="card"><h3>💛 自愿分享给亲爱的人</h3>'+
+    '<p>你可以把下面的学习总结通过 WhatsApp 发送给你想分享的人。网站不会自动发送，也不会直接让别人查看你的进度。</p>'+
+    '<textarea id="progress-preview" class="txt" readonly style="height:240px;min-height:240px;font-size:.87rem;line-height:1.5">'+esc(progressText())+'</textarea>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn" onclick="sendProgressWhatsApp()">💬 用 WhatsApp 分享</button> '+
+    '<button class="btn ghost" onclick="copyProgressText(this)">复制学习进度</button></div>'+
+    '<p class="muted">发送前你可以在 WhatsApp 中查看、修改或取消消息。没有任何自动分享。</p></div>';
+  app.innerHTML=h;
+}
+function sendProgressWhatsApp(){
+  var url="https://wa.me/?text="+encodeURIComponent(progressText());
+  // Ouverture déclenchée par le clic de Qing, destinataire choisi dans WhatsApp.
+  var win=window.open(url,"_blank","noopener,noreferrer");
+  if(!win)window.location.href=url;
+}
+function copyProgressText(btn){
+  var t=progressText();
+  function ok(){btn.textContent="已复制 ✓";setTimeout(function(){btn.textContent="复制学习进度";},1800);}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(ok).catch(function(){fallbackCopyProgress(t,btn);});}
+  else fallbackCopyProgress(t,btn);
+}
+function fallbackCopyProgress(t,btn){
+  var ta=document.createElement("textarea");ta.value=t;ta.setAttribute("readonly","");ta.style.position="fixed";ta.style.left="-9999px";
+  document.body.appendChild(ta);ta.select();try{if(document.execCommand("copy"))btn.textContent="已复制 ✓";else btn.textContent="请手动复制上方文字";}catch(e){btn.textContent="请手动复制上方文字";}document.body.removeChild(ta);
+}
 /* ---------- 使用说明 ---------- */
 function renderHelp(){
   var h='<h1>使用说明</h1>';
@@ -834,8 +924,9 @@ function renderHelp(){
    '<li><b>③ 小练习（约5分钟）</b>：选择题、填空、排词、配对，答完立刻有讲解。</li>'+
    '<li><b>④ 复习或写一句（约5分钟）</b>：用今天的词写一句属于自己的法语（自动保存），然后点「完成本课」——或直接离开，进度自动保存。</li></ul>'+
    '<p class="muted">建议：每周 4 节新内容 + 周五轻松复习，另外两天完全休息。不想学的日子跳过就好，<b>没有必须完成的日程</b>。这个课堂不设考试、不设等级目标：会认、会用、自己觉得有意思，就是学会。</p></div>';
+  h+='<div class="card"><h3>🤟 Elix 手语词典</h3><p>部分词汇卡片和词典词条现在有「在 Elix 查看 LSF」按钮，点开可查询法国手语的视频（若对应词条有提供）。你可以自由决定要不要看，完全不影响课程。Elix 是第三方独立网站；本网站不保存、转载或复制它的视频。不同词义可能对应不同手语，请留意选择正确的意思。</p><p><a href="https://dico.elix-lsf.fr/" target="_blank" rel="noopener noreferrer">打开 Elix 官方词典 ↗</a></p></div>';
   h+='<div class="card"><h3>关于拼音和 LSF</h3><p>卡片上的拼音标注的是<b>汉字（中文）的读音</b>，跟法语发音无关——我们完全不学法语发音。另外：LSF（法国手语）是一门独立的手语语言，和书面法语是两回事，课堂上不会混淆两者；需要手语交流时，由身边的人直接用 LSF 就好。</p></div>';
-  h+='<div class="card"><h3>进度与隐私</h3><p>进度、收藏、错题都保存在你当前设备的浏览器里（localStorage），<b>不需要注册</b>。限制：iPhone 和电脑的进度<b>不会自动同步</b>——尽量固定用一个设备学习；换设备就重新开始或各学各的。不上传任何个人信息。</p></div>';
+  h+='<div class="card"><h3>进度与隐私</h3><p>进度、收藏、错题都保存在你当前设备的浏览器里（localStorage），<b>不需要注册</b>。iPhone 和电脑的进度<b>不会自动同步</b>。你可以在「📈 进度」中自愿通过 WhatsApp 分享学习总结，分享前由你选择收件人并确认。网站本身不自动发送任何个人学习记录。</p></div>';
   h+='<div class="card"><h3>小提示</h3><p>工作中只想学一小会儿？每课随时可以停，回来点主页的「继续学习」就能接上。没有提醒、没有通知，完全由你决定什么时候学。</p></div>';
   app.innerHTML=h;
 }
